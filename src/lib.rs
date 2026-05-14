@@ -42,7 +42,6 @@ fn replace_restricted_vis_path(path: &Path, ident: &Ident, vis: &mut Visibility)
         && input == ident
     {
         vis.path = Box::clone_from_ref(path);
-        println!("replaced: {:?}", quote::quote! {#vis});
     }
 }
 

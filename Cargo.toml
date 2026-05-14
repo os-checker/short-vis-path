@@ -3,13 +3,16 @@ name = "short_vis_path"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+proc-macro = true
+
 [dependencies]
 syn = { version = "2", features = ["full"] }
 quote = "1"
 proc-macro2 = { version = "1", features = ["span-locations"] }
 
-[lib]
-proc-macro = true
+[dev-dependencies]
+pretty_assertions = "1.4.1"
 
 [workspace]
 members = ["usage"]
