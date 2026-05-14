@@ -3,4 +3,10 @@
 
 mod procfs;
 
+mod fs;
+
+mod fs2 {
+    mod procfs;
+}
+
 fn main() {}

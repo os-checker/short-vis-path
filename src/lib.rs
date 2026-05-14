@@ -73,15 +73,18 @@ fn get_expanded_module_path() -> Path {
     let Ok(module_path) = relative_path.strip_prefix("src") else {
         panic!("`src/` must be a prefix of {relative_path:?}.")
     };
-    let Some(module) = module_path.to_str().unwrap().strip_suffix(".rs") else {
-        panic!("{module_path:?} must be a rs file.")
-    };
+
+    let module_str = module_path.to_str().unwrap();
+    // Handle `xx/mod_name/mod.rs` module style.
+    let module_str = module_str.strip_suffix("/mod.rs").unwrap_or(module_str);
+    // Handle `xx/mod_name.rs` module style.
+    let module_str = module_str.strip_suffix(".rs").unwrap_or(module_str);
 
     Path {
         leading_colon: None,
         segments: std::iter::once("crate")
             .chain(
-                std::path::Path::new(module)
+                std::path::Path::new(module_str)
                     .iter()
                     .map(|m| m.to_str().unwrap()),
             )
