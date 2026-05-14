@@ -3,20 +3,26 @@
 version = 4
 
 [[package]]
-name = "diff"
-version = "0.1.13"
+name = "dissimilar"
+version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56254986775e3233ffa9c4d7d3faaf6d36a2c09d30b20687e9f88bc8bafc16c8"
+checksum = "aeda16ab4059c5fd2a83f2b9c9e9c981327b18aa8e3b313f7e6563799d4f093e"
 
 [[package]]
-name = "pretty_assertions"
-version = "1.4.1"
+name = "expect-test"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ae130e2f271fbc2ac3a40fb1d07180839cdbbe443c7a27e1e3c13c5cac0116d"
+checksum = "63af43ff4431e848fb47472a920f14fa71c24de13255a5692e93d4e90302acb0"
 dependencies = [
- "diff",
- "yansi",
+ "dissimilar",
+ "once_cell",
 ]
+
+[[package]]
+name = "once_cell"
+version = "1.21.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "proc-macro2"
@@ -40,7 +46,7 @@ dependencies = [
 name = "short_vis_path"
 version = "0.1.0"
 dependencies = [
- "pretty_assertions",
+ "expect-test",
  "proc-macro2",
  "quote",
  "syn",
@@ -69,9 +75,3 @@ version = "0.1.0"
 dependencies = [
  "short_vis_path",
 ]
-
-[[package]]
-name = "yansi"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfe53a6657fd280eaa890a3bc59152892ffa3e30101319d168b781ed6529b049"

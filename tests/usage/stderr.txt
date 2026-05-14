@@ -1,12 +1,12 @@
-    Checking usage v0.1.0 ($PWD/usage)
+    Checking usage v0.1.0 ($PWD/tests/usage)
 error[E0603]: function `foo` is private
- --> usage/src/main.rs:7:13
+ --> tests/usage/src/main.rs:7:13
   |
 7 |     procfs::foo()
   |             ^^^ private function
   |
 note: the function `foo` is defined here
- --> usage/src/main.rs:4:1
+ --> tests/usage/src/main.rs:4:1
   |
 4 | mod procfs;
   | ^^^^^^^^^^^
