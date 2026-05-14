@@ -1,3 +1,6 @@
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
     Checking usage v0.1.0 ($PWD/tests/usage)
 error[E0603]: function `foo` is private
  --> tests/usage/src/main.rs:7:13

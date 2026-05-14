@@ -15,4 +15,4 @@ proc-macro2 = { version = "1", features = ["span-locations"] }
 expect-test = "1.5.1"
 
 [workspace]
-members = ["tests/usage"]
+members = ["tests/*"]

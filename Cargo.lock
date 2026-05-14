@@ -19,6 +19,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ok_single_ident"
+version = "0.1.0"
+dependencies = [
+ "short_vis_path",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

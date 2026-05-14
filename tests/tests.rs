@@ -32,3 +32,19 @@ fn usage() {
 
     println!("success={status}\nstdout={stdout}\nstderr={stderr}");
 }
+
+#[test]
+fn ok_single_ident() {
+    let dir = "ok_single_ident";
+    let output = Command::new("cargo")
+        .arg("expand")
+        .current_dir(format!("tests/{dir}"))
+        .output()
+        .unwrap();
+
+    let stdout = strip_pwd(std::str::from_utf8(&output.stdout).unwrap());
+    expect_file![format!("{dir}/stdout.txt")].assert_eq(&stdout);
+
+    let stderr = strip_pwd(std::str::from_utf8(&output.stderr).unwrap());
+    expect_file![format!("{dir}/stderr.txt")].assert_eq(&stderr);
+}
