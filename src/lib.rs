@@ -8,21 +8,13 @@ use syn::*;
 
 #[proc_macro_attribute]
 pub fn add(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let path = expanded_path();
+    let path = get_expanded_module_path();
 
     let arg = syn::parse_macro_input!(attr as Ident);
     let mut file = syn::parse_macro_input!(item as File);
 
-    const ERR_MOD: &str = "The annotated file must be a module.";
-    assert_eq!(file.items.len(), 1, "{ERR_MOD}");
-    let Item::Mod(module) = &mut file.items[0] else {
-        panic!("{ERR_MOD}")
-    };
-    let module = module
-        .content
-        .as_mut()
-        .expect("The attribute must be inside a module. i.e. `#![short_vis_path::add]`");
-    for item in &mut module.1 {
+    let items = get_items(&mut file);
+    for item in items {
         match item {
             Item::Fn(f) => replace_restricted_vis_path(&path, &arg, &mut f.vis),
             Item::Struct(s) => replace_restricted_vis_path(&path, &arg, &mut s.vis),
@@ -36,6 +28,21 @@ pub fn add(attr: TokenStream, item: TokenStream) -> TokenStream {
     file.into_token_stream().into()
 }
 
+/// Get the items in the annotated module.
+fn get_items(file: &mut File) -> &mut [Item] {
+    const ERR_MOD: &str = "The annotated file must be a module.";
+    assert_eq!(file.items.len(), 1, "{ERR_MOD}");
+    let Item::Mod(module) = &mut file.items[0] else {
+        panic!("{ERR_MOD}")
+    };
+    let module = module
+        .content
+        .as_mut()
+        .expect("The attribute must be inside a module. i.e. `#![short_vis_path::add]`");
+    &mut module.1
+}
+
+/// Replace `pub(in subsystem)` by `pub(in crate::to::subsystem)`.
 fn replace_restricted_vis_path(path: &Path, ident: &Ident, vis: &mut Visibility) {
     if let Visibility::Restricted(vis) = vis
         && let Some(input) = vis.path.get_ident()
@@ -45,7 +52,10 @@ fn replace_restricted_vis_path(path: &Path, ident: &Ident, vis: &mut Visibility)
     }
 }
 
-fn expanded_path() -> Path {
+/// Get the module path to be used in `pub(in ...)`, based on directory structure.
+/// For example, if the attribute is in `a/src/procfs.rs`, this function returns
+/// `crate::procfs`; if in `a/src/fs/procfs/mod.rs`, returns `crate::fs::procfs`.
+fn get_expanded_module_path() -> Path {
     let callsite_span = Span::call_site();
     let Some(local_path) = callsite_span.local_file() else {
         panic!("Unknown local file path to call site span {callsite_span:?}.");
