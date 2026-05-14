@@ -1,5 +1,5 @@
 [package]
-name = "usage"
+name = "err_single_ident"
 version = "0.1.0"
 edition = "2024"
 

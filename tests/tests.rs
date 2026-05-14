@@ -32,7 +32,7 @@ macro_rules! snapshot {
     };
 }
 
-snapshot! { @fail usage }
+snapshot! { @fail err_single_ident }
 snapshot! { @success ok_single_ident }
 
 // Don't include local path in output.
