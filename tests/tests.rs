@@ -1,50 +1,37 @@
 use expect_test::expect_file;
-use std::{io::Write, process::Command, sync::LazyLock};
+use std::{process::Command, sync::LazyLock};
 
-static PWD: LazyLock<String> = LazyLock::new(|| {
-    std::env::current_dir()
-        .unwrap()
-        .to_str()
-        .unwrap()
-        .to_string()
-});
+macro_rules! snapshot {
+    ($name:ident) => {
+        #[test]
+        fn $name() {
+            let dir = stringify!($name);
+            let output = Command::new("cargo")
+                .arg("expand")
+                .current_dir(format!("tests/{dir}"))
+                .output()
+                .unwrap();
 
+            let stdout = strip_pwd(std::str::from_utf8(&output.stdout).unwrap());
+            expect_file![format!("{dir}/cargo_expand.rs")].assert_eq(&stdout);
+        }
+    };
+    ($($name:ident),+ $(,)?) => {
+        $(snapshot! { $name })+
+    };
+}
+
+snapshot! { usage, ok_single_ident }
+
+// Don't include local path in output.
 fn strip_pwd(s: &str) -> String {
+    static PWD: LazyLock<String> = LazyLock::new(|| {
+        std::env::current_dir()
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
+    });
+
     s.replace(&**PWD, "$PWD")
-}
-
-#[test]
-fn usage() {
-    let dir = "usage";
-    let output = Command::new("cargo")
-        .arg("expand")
-        .current_dir(format!("tests/{dir}"))
-        .output()
-        .unwrap();
-
-    let stdout = strip_pwd(std::str::from_utf8(&output.stdout).unwrap());
-    // write_output(&stdout, dir, "stdout.txt");
-    expect_file![format!("{dir}/stdout.txt")].assert_eq(&stdout);
-    let stderr = strip_pwd(std::str::from_utf8(&output.stderr).unwrap());
-    // write_output(&stderr, dir, "stderr.txt");
-    expect_file![format!("{dir}/stderr.txt")].assert_eq(&stderr);
-    let status = output.status.success();
-
-    println!("success={status}\nstdout={stdout}\nstderr={stderr}");
-}
-
-#[test]
-fn ok_single_ident() {
-    let dir = "ok_single_ident";
-    let output = Command::new("cargo")
-        .arg("expand")
-        .current_dir(format!("tests/{dir}"))
-        .output()
-        .unwrap();
-
-    let stdout = strip_pwd(std::str::from_utf8(&output.stdout).unwrap());
-    expect_file![format!("{dir}/stdout.txt")].assert_eq(&stdout);
-
-    let stderr = strip_pwd(std::str::from_utf8(&output.stderr).unwrap());
-    expect_file![format!("{dir}/stderr.txt")].assert_eq(&stderr);
 }
