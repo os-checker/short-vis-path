@@ -2,7 +2,7 @@ use expect_test::expect_file;
 use std::{process::Command, sync::LazyLock};
 
 macro_rules! snapshot {
-    ($name:ident) => {
+    ($name:ident $success:literal) => {
         #[test]
         fn $name() {
             let dir = stringify!($name);
@@ -14,14 +14,26 @@ macro_rules! snapshot {
 
             let stdout = strip_pwd(std::str::from_utf8(&output.stdout).unwrap());
             expect_file![format!("{dir}/cargo_expand.rs")].assert_eq(&stdout);
+
+            // Stdout and stderr are redirected to user.
+            let status = Command::new("cargo")
+                .arg("check")
+                .current_dir(format!("tests/{dir}"))
+                .status()
+                .unwrap();
+            assert_eq!(status.success(), $success);
         }
     };
-    ($($name:ident),+ $(,)?) => {
-        $(snapshot! { $name })+
+    (@fail $($name:ident),+ $(,)?) => {
+        $(snapshot! { $name false })+
+    };
+    (@success $($name:ident),+ $(,)?) => {
+        $(snapshot! { $name true })+
     };
 }
 
-snapshot! { usage, ok_single_ident }
+snapshot! { @fail usage }
+snapshot! { @success ok_single_ident }
 
 // Don't include local path in output.
 fn strip_pwd(s: &str) -> String {
