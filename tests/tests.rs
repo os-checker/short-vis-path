@@ -28,7 +28,12 @@ macro_rules! snapshot {
                 .status()
                 .unwrap();
             // Check if the code compiles.
-            assert_eq!(status.success(), $success);
+            assert_eq!(
+                status.success(), $success,
+                "code compilation is expected to {expect}, while it {happen}",
+                expect = if $success {"succeed"} else {"fail"},
+                happen = if $success {"fail"} else {"succeeds"},
+            );
         }
     };
     (@fail $($name:ident [$($substr:literal),*]),+) => {

@@ -2,9 +2,10 @@
 #![feature(custom_inner_attributes)]
 #![allow(dead_code)]
 
-mod procfs;
-
 mod fs;
+mod multi;
+mod nested;
+mod procfs;
 
 mod mod_rs {
     mod procfs;
