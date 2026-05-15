@@ -40,10 +40,14 @@ macro_rules! snapshot {
 }
 
 snapshot! {
-    @fail err_single_ident ["pub(in crate::procfs)"]
+    @fail err_single_ident ["pub(in crate::procfs) fn foo()"]
 }
 snapshot! {
-    @success ok_single_ident ["pub(in crate::procfs)", "pub(in crate::fs::procfs)", "pub(in crate::fs2::procfs)"]
+    @success ok_single_ident [
+        "pub(in crate::procfs) trait T {}",
+        "pub(in crate::fs::procfs) enum E {}",
+        "pub(in crate::fs2::procfs) struct S;"
+    ]
 }
 
 // Don't include local path in output.

@@ -15,14 +15,19 @@ pub fn add(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let items = get_items(&mut file);
     for item in items {
-        match item {
-            Item::Fn(f) => replace_restricted_vis_path(&path, &arg, &mut f.vis),
-            Item::Struct(s) => replace_restricted_vis_path(&path, &arg, &mut s.vis),
-            Item::Enum(e) => replace_restricted_vis_path(&path, &arg, &mut e.vis),
-            Item::Static(e) => replace_restricted_vis_path(&path, &arg, &mut e.vis),
-            Item::Const(c) => replace_restricted_vis_path(&path, &arg, &mut c.vis),
-            _ => (),
-        }
+        let vis = match item {
+            Item::Fn(f) => &mut f.vis,
+            Item::Struct(s) => &mut s.vis,
+            Item::Enum(e) => &mut e.vis,
+            Item::Union(u) => &mut u.vis,
+            Item::Static(e) => &mut e.vis,
+            Item::Const(c) => &mut c.vis,
+            Item::Trait(t) => &mut t.vis,
+            Item::Type(t) => &mut t.vis,
+            Item::TraitAlias(t) => &mut t.vis,
+            _ => continue,
+        };
+        replace_restricted_vis_path(&path, &arg, vis)
     }
 
     file.into_token_stream().into()

@@ -6,16 +6,16 @@ extern crate std;
 #[prelude_import]
 use std::prelude::rust_2024::*;
 mod procfs {
-    pub(in crate::procfs) fn foo() {}
+    pub(in crate::procfs) trait T {}
 }
 mod fs {
     mod procfs {
-        pub(in crate::fs::procfs) fn bar() {}
+        pub(in crate::fs::procfs) enum E {}
     }
 }
 mod fs2 {
     mod procfs {
-        pub(in crate::fs2::procfs) fn bar() {}
+        pub(in crate::fs2::procfs) struct S;
     }
 }
 fn main() {}
