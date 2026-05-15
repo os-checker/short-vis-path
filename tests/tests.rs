@@ -31,10 +31,10 @@ macro_rules! snapshot {
             assert_eq!(status.success(), $success);
         }
     };
-    (@fail $($name:ident [$($substr:literal),*]),+ $(,)?) => {
+    (@fail $($name:ident [$($substr:literal),*]),+) => {
         $(snapshot! { $name false [$($substr),*] })+
     };
-    (@success $($name:ident [$($substr:literal),*]),+ $(,)?) => {
+    (@success $($name:ident [$($substr:literal),*]),+) => {
         $(snapshot! { $name true [$($substr),*] })+
     };
 }
@@ -46,7 +46,9 @@ snapshot! {
     @success ok_single_ident [
         "pub(in crate::procfs) trait T {}",
         "pub(in crate::fs::procfs) enum E {}",
-        "pub(in crate::fs2::procfs) struct S;"
+        "pub(in crate::mod_rs::procfs) struct S;",
+        "pub(in crate::override_::procfs) const UNIT:",
+        "pub(in crate::adhoc::outer) type Unit"
     ]
 }
 

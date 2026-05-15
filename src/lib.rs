@@ -2,15 +2,19 @@
 #![feature(clone_from_ref)]
 
 use proc_macro::TokenStream;
-use proc_macro2::Span;
 use quote::ToTokens;
 use syn::*;
 
+mod args;
+
 #[proc_macro_attribute]
 pub fn add(attr: TokenStream, item: TokenStream) -> TokenStream {
-    let path = get_expanded_module_path();
+    if attr.is_empty() {
+        // Do nothing if argument hasn't been provided yet.
+        return item;
+    }
 
-    let arg = syn::parse_macro_input!(attr as Ident);
+    let args = syn::parse_macro_input!(attr as args::AddArguments);
     let mut file = syn::parse_macro_input!(item as File);
 
     let items = get_items(&mut file);
@@ -27,7 +31,7 @@ pub fn add(attr: TokenStream, item: TokenStream) -> TokenStream {
             Item::TraitAlias(t) => &mut t.vis,
             _ => continue,
         };
-        replace_restricted_vis_path(&path, &arg, vis)
+        args.replace_restricted_vis_path(vis);
     }
 
     file.into_token_stream().into()
@@ -45,55 +49,4 @@ fn get_items(file: &mut File) -> &mut [Item] {
         .as_mut()
         .expect("The attribute must be inside a module. i.e. `#![short_vis_path::add]`");
     &mut module.1
-}
-
-/// Replace `pub(in subsystem)` by `pub(in crate::to::subsystem)`.
-fn replace_restricted_vis_path(path: &Path, ident: &Ident, vis: &mut Visibility) {
-    if let Visibility::Restricted(vis) = vis
-        && let Some(input) = vis.path.get_ident()
-        && input == ident
-    {
-        vis.path = Box::clone_from_ref(path);
-    }
-}
-
-/// Get the module path to be used in `pub(in ...)`, based on directory structure.
-/// For example, if the attribute is in `a/src/procfs.rs`, this function returns
-/// `crate::procfs`; if in `a/src/fs/procfs/mod.rs`, returns `crate::fs::procfs`.
-fn get_expanded_module_path() -> Path {
-    let callsite_span = Span::call_site();
-    let Some(local_path) = callsite_span.local_file() else {
-        panic!("Unknown local file path to call site span {callsite_span:?}.");
-    };
-    let Ok(local_path) = local_path.canonicalize() else {
-        panic!("Unable to canonicalize {local_path:?}.")
-    };
-
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("Failed to get manifest dir.");
-
-    let Ok(relative_path) = local_path.strip_prefix(&manifest_dir) else {
-        panic!("{manifest_dir:?} must be a prefix of {local_path:?}.")
-    };
-
-    let Ok(module_path) = relative_path.strip_prefix("src") else {
-        panic!("`src/` must be a prefix of {relative_path:?}.")
-    };
-
-    let module_str = module_path.to_str().unwrap();
-    // Handle `xx/mod_name/mod.rs` module style.
-    let module_str = module_str.strip_suffix("/mod.rs").unwrap_or(module_str);
-    // Handle `xx/mod_name.rs` module style.
-    let module_str = module_str.strip_suffix(".rs").unwrap_or(module_str);
-
-    Path {
-        leading_colon: None,
-        segments: std::iter::once("crate")
-            .chain(
-                std::path::Path::new(module_str)
-                    .iter()
-                    .map(|m| m.to_str().unwrap()),
-            )
-            .map(|m| PathSegment::from(Ident::new(m, callsite_span)))
-            .collect(),
-    }
 }

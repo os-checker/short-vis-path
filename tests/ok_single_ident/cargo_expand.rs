@@ -1,6 +1,7 @@
 #![feature(prelude_import)]
 #![feature(proc_macro_hygiene)]
 #![feature(custom_inner_attributes)]
+#![allow(dead_code)]
 #[macro_use]
 extern crate std;
 #[prelude_import]
@@ -13,9 +14,20 @@ mod fs {
         pub(in crate::fs::procfs) enum E {}
     }
 }
-mod fs2 {
+mod mod_rs {
     mod procfs {
-        pub(in crate::fs2::procfs) struct S;
+        pub(in crate::mod_rs::procfs) struct S;
+    }
+}
+mod override_ {
+    #[path = "procfs.rs"]
+    pub mod procfs {
+        pub(in crate::override_::procfs) const UNIT: () = ();
+    }
+}
+mod adhoc {
+    pub mod outer {
+        pub(in crate::adhoc::outer) type Unit = ();
     }
 }
 fn main() {}
