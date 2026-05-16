@@ -1,4 +1,5 @@
-use proc_macro2::Span;
+use proc_macro2::{Group, Span, TokenStream, TokenTree};
+use quote::ToTokens;
 use std::collections::BTreeMap;
 use syn::{parse::Parse, punctuated::Punctuated, visit_mut::*, *};
 
@@ -95,6 +96,10 @@ impl visit_mut::VisitMut for AddArguments {
                 visit_item_impl_mut(self, i);
                 return;
             }
+            Item::Verbatim(ts) => {
+                self.replace_verbatim_vis_path(ts);
+                return;
+            }
             _ => return,
         };
 
@@ -122,6 +127,34 @@ impl AddArguments {
             && let Some(path) = self.args.get(input)
         {
             vis.path = Box::clone_from_ref(path);
+        }
+    }
+
+    /// Parse `pub(in ident) ...`.
+    fn replace_verbatim_vis_path(&self, ts: &mut TokenStream) {
+        let mut v_tt: Vec<TokenTree> = ts.clone().into_iter().collect();
+        let mut iter = v_tt.iter_mut();
+        if let Some(TokenTree::Ident(ident)) = iter.next()
+            && ident == "pub"
+            && let Some(TokenTree::Group(group)) = iter.next()
+        {
+            let mut new_stream = TokenStream::new();
+            let mut stream = group.stream().into_iter();
+            if let Some(in_) = stream.next()
+                && let TokenTree::Ident(ident) = &in_
+                && ident == "in"
+            {
+                new_stream.extend([in_]);
+
+                let path_stream = stream.collect::<TokenStream>();
+                if let Ok(input) = parse2::<Ident>(path_stream)
+                    && let Some(path) = self.args.get(&input)
+                {
+                    path.to_tokens(&mut new_stream);
+                    *group = Group::new(group.delimiter(), new_stream);
+                }
+            }
+            *ts = TokenStream::from_iter(v_tt);
         }
     }
 }

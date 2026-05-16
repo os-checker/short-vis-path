@@ -1,6 +1,7 @@
 #![feature(prelude_import)]
 #![feature(proc_macro_hygiene)]
 #![feature(custom_inner_attributes)]
+#![feature(decl_macro)]
 #![allow(dead_code)]
 extern crate std;
 #[prelude_import]
@@ -15,6 +16,11 @@ mod fs {
     }
     mod procfs {
         pub(in crate::fs) enum E {}
+    }
+    mod mbe {
+        pub(in crate::fs) macro mbe {
+            () => {}
+        }
     }
 }
 mod mod_rs {
