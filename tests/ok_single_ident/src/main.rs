@@ -3,7 +3,6 @@
 #![allow(dead_code)]
 
 mod fs;
-mod multi;
 
 mod mod_rs {
     mod procfs;

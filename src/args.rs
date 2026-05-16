@@ -31,13 +31,22 @@ impl Parse for AddArguments {
         let args = Punctuated::<Argument, Token![,]>::parse_terminated(input)?;
 
         // Default module path inferred from file path.
-        let path = get_expanded_module_path();
+        let path = ExpandedPath::new();
 
         Ok(AddArguments {
             args: args
                 .into_iter()
                 .map(|arg| match arg {
-                    Argument::Single(ident) => (ident, path.clone()),
+                    Argument::Single(ident) => {
+                        let Some(tokens) = path.to_syn_path(&ident) else {
+                            panic!(
+                                "The path `{}` doesn't contain `{ident}`. \
+                                 Please choose a corrent short module name.",
+                                path.segment.join("::")
+                            )
+                        };
+                        (ident, tokens)
+                    }
                     Argument::Override(ident, path) => (ident, path.clone()),
                 })
                 .collect(),
@@ -117,43 +126,67 @@ impl AddArguments {
     }
 }
 
-/// Get the module path to be used in `pub(in ...)`, based on directory structure.
-/// For example, if the attribute is in `a/src/procfs.rs`, this function returns
-/// `crate::procfs`; if in `a/src/fs/procfs/mod.rs`, returns `crate::fs::procfs`.
-fn get_expanded_module_path() -> Path {
-    let callsite_span = Span::call_site();
-    let Some(local_path) = callsite_span.local_file() else {
-        panic!("Unknown local file path to call site span {callsite_span:?}.");
-    };
-    let Ok(local_path) = local_path.canonicalize() else {
-        panic!("Unable to canonicalize {local_path:?}.")
-    };
+/// Module path to be replaced with, at best effort of guess basis on source file layout.
+struct ExpandedPath {
+    /// Starting from `crate`.
+    segment: Vec<String>,
+    /// Callsite span.
+    callsite_span: Span,
+}
 
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("Failed to get manifest dir.");
+impl ExpandedPath {
+    /// Get the module path to be used in `pub(in ...)`, based on directory structure.
+    /// For example, if the attribute is in `a/src/procfs.rs`, this function returns
+    /// `crate::procfs`; if in `a/src/fs/procfs/mod.rs`, returns `crate::fs::procfs`.
+    fn new() -> Self {
+        let callsite_span = Span::call_site();
+        let Some(local_path) = callsite_span.local_file() else {
+            panic!("Unknown local file path to call site span {callsite_span:?}.");
+        };
+        let Ok(local_path) = local_path.canonicalize() else {
+            panic!("Unable to canonicalize {local_path:?}.")
+        };
 
-    let Ok(relative_path) = local_path.strip_prefix(&manifest_dir) else {
-        panic!("{manifest_dir:?} must be a prefix of {local_path:?}.")
-    };
+        let manifest_dir =
+            std::env::var("CARGO_MANIFEST_DIR").expect("Failed to get manifest dir.");
 
-    let Ok(module_path) = relative_path.strip_prefix("src") else {
-        panic!("`src/` must be a prefix of {relative_path:?}.")
-    };
+        let Ok(relative_path) = local_path.strip_prefix(&manifest_dir) else {
+            panic!("{manifest_dir:?} must be a prefix of {local_path:?}.")
+        };
 
-    let module_str = module_path.to_str().unwrap();
-    // Handle `xx/mod_name/mod.rs` module style.
-    let module_str = module_str.strip_suffix("/mod.rs").unwrap_or(module_str);
-    // Handle `xx/mod_name.rs` module style.
-    let module_str = module_str.strip_suffix(".rs").unwrap_or(module_str);
+        let Ok(module_path) = relative_path.strip_prefix("src") else {
+            panic!("`src/` must be a prefix of {relative_path:?}.")
+        };
 
-    Path {
-        leading_colon: None,
-        segments: std::iter::once("crate")
-            .chain(
-                std::path::Path::new(module_str)
-                    .iter()
-                    .map(|m| m.to_str().unwrap()),
-            )
-            .map(|m| PathSegment::from(Ident::new(m, callsite_span)))
-            .collect(),
+        let module_str = module_path.to_str().unwrap();
+        // Handle `xx/mod_name/mod.rs` module style.
+        let module_str = module_str.strip_suffix("/mod.rs").unwrap_or(module_str);
+        // Handle `xx/mod_name.rs` module style.
+        let module_str = module_str.strip_suffix(".rs").unwrap_or(module_str);
+
+        ExpandedPath {
+            segment: std::iter::once("crate")
+                .chain(
+                    std::path::Path::new(module_str)
+                        .iter()
+                        .map(|m| m.to_str().unwrap()),
+                )
+                .map(String::from)
+                .collect(),
+            callsite_span,
+        }
+    }
+
+    /// Generate the Path tokens, starting from `crate` to `end` (both included).
+    /// Returns None when the module path doesn't contain `end`.
+    fn to_syn_path(&self, end: &Ident) -> Option<Path> {
+        let pos = self.segment.iter().rposition(|seg| end == seg.as_str())?;
+        Some(Path {
+            leading_colon: None,
+            segments: self.segment[..pos + 1]
+                .iter()
+                .map(|s| PathSegment::from(Ident::new(s, self.callsite_span)))
+                .collect(),
+        })
     }
 }

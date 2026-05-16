@@ -10,20 +10,20 @@ mod fs {
     mod nested {
         pub struct S;
         impl S {
-            pub(in crate::fs::nested) fn nested_impl_fn() {}
+            pub(in crate::fs) fn nested_impl_fn() {}
         }
-        pub(in crate::fs::nested) fn baz() {}
+        pub(in crate::fs) fn baz() {}
     }
     mod procfs {
-        pub(in crate::fs::procfs) enum E {}
+        pub(in crate::fs) enum E {}
     }
-}
-mod multi {
-    pub(in crate::multi) fn foo() {}
-    pub(in crate::multi) fn bar() {}
 }
 mod mod_rs {
     mod procfs {
+        mod multi {
+            pub(in crate::mod_rs::procfs) fn foo() {}
+            pub(in crate::mod_rs::procfs) fn bar() {}
+        }
         mod inner {
             pub(in crate::mod_rs::procfs) struct S;
         }
