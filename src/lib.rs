@@ -1,4 +1,3 @@
-#![feature(if_let_guard)]
 #![feature(clone_from_ref)]
 
 use proc_macro::TokenStream;

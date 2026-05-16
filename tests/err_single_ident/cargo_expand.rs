@@ -1,7 +1,6 @@
 #![feature(prelude_import)]
 #![feature(proc_macro_hygiene)]
 #![feature(custom_inner_attributes)]
-#[macro_use]
 extern crate std;
 #[prelude_import]
 use std::prelude::rust_2024::*;
