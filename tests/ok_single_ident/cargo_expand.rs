@@ -24,6 +24,16 @@ mod fs {
             () => {}
         }
     }
+    mod ramfs {
+        mod fs {
+            pub(in crate::fs) fn shallow_fs_wins() {}
+        }
+    }
+    mod tmpfs {
+        mod fs {
+            pub(in crate::fs::tmpfs::fs) fn deepest_fs_wins() {}
+        }
+    }
 }
 mod mod_rs {
     mod procfs {

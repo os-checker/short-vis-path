@@ -54,6 +54,8 @@ snapshot! {
         "pub(in crate::fs) fn baz()",
         "pub(in crate::fs) enum E {}",
         "pub(in crate::fs) macro mbe",
+        "pub(in crate::fs) fn shallow_fs_wins()",
+        "pub(in crate::fs::tmpfs::fs) fn deepest_fs_wins()",
         "pub(in crate::mod_rs::procfs) fn foo()",
         "pub(in crate::mod_rs::procfs) fn bar()",
         "pub(in crate::mod_rs::procfs) struct S;",
