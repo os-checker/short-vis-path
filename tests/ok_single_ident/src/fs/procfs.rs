@@ -1,3 +1,3 @@
-#![short_vis_path::add(procfs)]
+#![short_vis_path::add(fs)]
 
-pub(in procfs) enum E {}
+pub(in fs) enum E {}

@@ -4,8 +4,6 @@
 
 mod fs;
 mod multi;
-mod nested;
-mod procfs;
 
 mod mod_rs {
     mod procfs;

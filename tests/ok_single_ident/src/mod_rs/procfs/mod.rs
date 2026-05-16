@@ -1,3 +1,5 @@
 #![short_vis_path::add(procfs)]
 
-pub(in procfs) struct S;
+mod inner {
+    pub(in procfs) struct S;
+}

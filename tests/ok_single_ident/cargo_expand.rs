@@ -7,6 +7,13 @@ extern crate std;
 #[prelude_import]
 use std::prelude::rust_2024::*;
 mod fs {
+    mod nested {
+        pub struct S;
+        impl S {
+            pub(in crate::fs::nested) fn nested_impl_fn() {}
+        }
+        pub(in crate::fs::nested) fn baz() {}
+    }
     mod procfs {
         pub(in crate::fs::procfs) enum E {}
     }
@@ -15,19 +22,11 @@ mod multi {
     pub(in crate::multi) fn foo() {}
     pub(in crate::multi) fn bar() {}
 }
-mod nested {
-    pub struct S;
-    impl S {
-        pub(in crate::nested) fn nested_item() {}
-    }
-    pub(in crate::nested) fn baz() {}
-}
-mod procfs {
-    pub(in crate::procfs) trait T {}
-}
 mod mod_rs {
     mod procfs {
-        pub(in crate::mod_rs::procfs) struct S;
+        mod inner {
+            pub(in crate::mod_rs::procfs) struct S;
+        }
     }
 }
 mod override_ {
