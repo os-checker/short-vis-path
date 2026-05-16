@@ -49,9 +49,11 @@ snapshot! {
 }
 snapshot! {
     @success ok_single_ident [
+        "pub(in crate::fs) f1:",
         "pub(in crate::fs) fn nested_impl_fn()",
         "pub(in crate::fs) fn baz()",
         "pub(in crate::fs) enum E {}",
+        "pub(in crate::fs) macro mbe",
         "pub(in crate::mod_rs::procfs) fn foo()",
         "pub(in crate::mod_rs::procfs) fn bar()",
         "pub(in crate::mod_rs::procfs) struct S;",

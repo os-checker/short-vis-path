@@ -1,7 +1,7 @@
 #![feature(proc_macro_hygiene)]
 #![feature(custom_inner_attributes)]
 #![feature(decl_macro)]
-#![allow(dead_code)]
+#![allow(unused)]
 
 mod fs;
 

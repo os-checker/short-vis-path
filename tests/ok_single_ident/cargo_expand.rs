@@ -2,13 +2,15 @@
 #![feature(proc_macro_hygiene)]
 #![feature(custom_inner_attributes)]
 #![feature(decl_macro)]
-#![allow(dead_code)]
+#![allow(unused)]
 extern crate std;
 #[prelude_import]
 use std::prelude::rust_2024::*;
 mod fs {
     mod nested {
-        pub struct S;
+        pub struct S {
+            pub(in crate::fs) f1: (),
+        }
         impl S {
             pub(in crate::fs) fn nested_impl_fn() {}
         }

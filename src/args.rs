@@ -1,7 +1,7 @@
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use std::collections::BTreeMap;
-use syn::{parse::Parse, punctuated::Punctuated, visit_mut::*, *};
+use syn::{parse::Parse, punctuated::Punctuated, *};
 
 pub enum Argument {
     Single(Ident),
@@ -56,66 +56,17 @@ impl Parse for AddArguments {
 }
 
 impl visit_mut::VisitMut for AddArguments {
-    fn visit_item_mut(&mut self, item: &mut Item) {
-        let vis = match item {
-            Item::Fn(f) => {
-                visit_item_fn_mut(self, f);
-                &mut f.vis
-            }
-            Item::Struct(s) => {
-                visit_item_struct_mut(self, s);
-                &mut s.vis
-            }
-            Item::Enum(e) => {
-                visit_item_enum_mut(self, e);
-                &mut e.vis
-            }
-            Item::Union(u) => {
-                visit_item_union_mut(self, u);
-                &mut u.vis
-            }
-            Item::Static(s) => {
-                visit_item_static_mut(self, s);
-                &mut s.vis
-            }
-            Item::Const(c) => {
-                visit_item_const_mut(self, c);
-                &mut c.vis
-            }
-            Item::Trait(t) => {
-                visit_item_trait_mut(self, t);
-                &mut t.vis
-            }
-            Item::Type(t) => &mut t.vis,
-            Item::TraitAlias(t) => &mut t.vis,
-            Item::Mod(m) => {
-                visit_item_mod_mut(self, m);
-                &mut m.vis
-            }
-            Item::Impl(i) => {
-                visit_item_impl_mut(self, i);
-                return;
-            }
-            Item::Verbatim(ts) => {
-                self.replace_verbatim_vis_path(ts);
-                return;
-            }
-            _ => return,
-        };
-
+    fn visit_visibility_mut(&mut self, vis: &mut Visibility) {
         self.replace_restricted_vis_path(vis);
     }
 
-    fn visit_impl_item_mut(&mut self, i: &mut ImplItem) {
-        let vis = match i {
-            ImplItem::Const(c) => &mut c.vis,
-            ImplItem::Fn(f) => &mut f.vis,
-            _ => return,
-        };
-        self.replace_restricted_vis_path(vis);
-
-        // Recurse.
-        visit_impl_item_mut(self, i);
+    fn visit_item_mut(&mut self, item: &mut Item) {
+        if let Item::Verbatim(ts) = item {
+            // Syn doesn't support parsing `pub(in path) macro` yet.
+            self.replace_verbatim_vis_path(ts);
+            return;
+        }
+        visit_mut::visit_item_mut(self, item);
     }
 }
 
