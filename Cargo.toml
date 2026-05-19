@@ -1,5 +1,5 @@
 [package]
-name = "short_vis_path"
+name = "short-vis-path"
 version = "0.1.0"
 edition = "2024"
 
@@ -13,6 +13,3 @@ proc-macro2 = { version = "1", features = ["span-locations"] }
 
 [dev-dependencies]
 expect-test = "1.5.1"
-
-[workspace]
-members = ["tests/*"]
