@@ -54,7 +54,10 @@ macro_rules! snapshot {
 snapshot! {
     @fail
     err_single_ident #stdout ["pub(in crate::procfs) fn foo()"] #stderr ["function `foo` is private"],
-    err_decl_macro_absolute_path #stdout [] #stderr ["cannot find macro `impl_frame_meta_for` in this scope"]
+    err_decl_macro_absolute_path #stdout [] #stderr [
+        "macro-expanded `macro_export` macros from the current crate cannot be referred to by absolute paths",
+        "#[deny(macro_expanded_macro_exports_accessed_by_absolute_paths)]"
+    ]
 }
 snapshot! {
     @success
